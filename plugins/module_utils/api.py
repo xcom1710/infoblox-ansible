@@ -332,10 +332,16 @@ class WapiModule(WapiBase):
                     if each.get('ipv4addr') and each.get('ipv4addr') == proposed_object.get('ipv4addr'):
                         current_object = each
                         break
+                    # In case we have multiple ip addresses for a host record and our goal is to remove every ip
+                    # then just use the first object reference.
+                    elif state == "absent" and not proposed_object.get('ipv4addrs'):
+                        current_object = each
+                        break
                     # To check for existing Host_record with same name with input Host_record by IP
                     elif each.get('ipv4addrs') and each.get('ipv4addrs')[0].get('ipv4addr')\
                             == proposed_object.get('ipv4addrs')[0].get('ipv4addr'):
                         current_object = each
+                        break
                     # Else set the current_object with input value
                     else:
                         current_object = obj_filter
@@ -546,17 +552,13 @@ class WapiModule(WapiBase):
         update = False
         if 'add' in proposed_object['ipv4addrs'][0]:
             if proposed_object['ipv4addrs'][0]['add']:
-                proposed_object['ipv4addrs+'] = proposed_object['ipv4addrs']
-                del proposed_object['ipv4addrs']
-                del proposed_object['ipv4addrs+'][0]['add']
+                del proposed_object['ipv4addrs'][0]['add']
                 update = True
             else:
                 del proposed_object['ipv4addrs'][0]['add']
         elif 'remove' in proposed_object['ipv4addrs'][0]:
             if proposed_object['ipv4addrs'][0]['remove']:
-                proposed_object['ipv4addrs-'] = proposed_object['ipv4addrs']
-                del proposed_object['ipv4addrs']
-                del proposed_object['ipv4addrs-'][0]['remove']
+                del proposed_object['ipv4addrs'][0]['remove']
                 update = True
             else:
                 del proposed_object['ipv4addrs'][0]['remove']
